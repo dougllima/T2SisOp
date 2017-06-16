@@ -5,10 +5,12 @@
  */
 
 /**
- *
  * @author crmoratelli
  */
 public interface DiskScheduler {
-    public int serviceRequests();
-    public void printGraph(String filename);
+    int chartWidth = 600;
+    int chartHeight = 300;
+
+    int serviceRequests();
+    void printGraph(String filename);
 }

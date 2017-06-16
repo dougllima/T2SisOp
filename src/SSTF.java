@@ -1,4 +1,3 @@
-import com.sun.deploy.util.ArrayUtil;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -23,9 +22,9 @@ import static java.lang.Math.abs;
  * 13/06/2017.
  */
 public class SSTF implements DiskScheduler {
-    private int[] requestString;
-    private int numCilindros;
-    private int initCilindro;
+    private final int[] requestString;
+    private final int numCilindros;
+    private final int initCilindro;
 
     public SSTF(int[] requestString, int numCilindros, int initCilindro) {
         this.requestString = requestString;
@@ -33,9 +32,25 @@ public class SSTF implements DiskScheduler {
         this.initCilindro = initCilindro;
     }
 
+    public static void main(String[] args) {
+        int[] requestString = {98, 183, 37, 122, 14, 126, 65, 67};
+        int numCilindros = 200;
+        int initCilindro = 53;
+
+        DiskScheduler SSTF = new SSTF(requestString, numCilindros, initCilindro);
+        System.out.println("Número de cilindros percorridos " + SSTF.getClass().getName() + " : " + SSTF.serviceRequests());
+        SSTF.printGraph("SSTF.jpg");
+    }
+
+    public static void test(int[] requestString, int numCilindros, int initCilindro) {
+        DiskScheduler SSTF = new SSTF(requestString, numCilindros, initCilindro);
+        System.out.println("Número de cilindros percorridos " + SSTF.getClass().getName() + " : " + SSTF.serviceRequests());
+        SSTF.printGraph("SSTF.jpg");
+    }
+
     @Override
     public int serviceRequests() {
-        // Clonando o vetor pois o método altera o originial
+        // Clonando o vetor para caso algum metodo altere o original.
         int[] requestString = this.requestString.clone();
 
         int result = 0;
@@ -71,7 +86,7 @@ public class SSTF implements DiskScheduler {
 
     @Override
     public void printGraph(String filename) {
-        // Clonando o vetor pois o método altera o originial
+        // Clonando o vetor para caso algum metodo altere o original.
         int[] requestString = this.requestString.clone();
 
         int y_axis = 0;
@@ -79,7 +94,7 @@ public class SSTF implements DiskScheduler {
         int lastIndex = requestString.length;
         int dist = numCilindros + 1;
 
-        XYSeries series = new XYSeries("FCFS");
+        XYSeries series = new XYSeries("SSTF");
 
         int position = initCilindro;
 
@@ -114,7 +129,7 @@ public class SSTF implements DiskScheduler {
         /* Gera o gráfico de linhas */
         JFreeChart chart = ChartFactory.createXYLineChart(
             /* Title */
-                "FCFS Scheduler Algorithm",
+                "SSTF Scheduler Algorithm",
             /* Title x*/
                 "",
             /* Title y */
@@ -135,23 +150,14 @@ public class SSTF implements DiskScheduler {
 
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesStroke(0, new BasicStroke(2.0f));
+        renderer.setSeriesPaint(0, Color.red);
+
         plot.setRenderer(renderer);
 
         try {
-            ChartUtilities.saveChartAsJPEG(new File(filename), chart, 500, 300);
+            ChartUtilities.saveChartAsJPEG(new File(filename), chart, chartWidth, chartHeight);
         } catch (IOException ex) {
             Logger.getLogger(SSTF.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    public static void main(String[] args) {
-        int[] requestString = {98, 183, 37, 122, 14, 126, 65, 67};
-        int numCilindros = 200;
-        int initCilindro = 53;
-
-        DiskScheduler SSTF = new SSTF(requestString, numCilindros, initCilindro);
-        System.out.println("Número de cilindros percorridos: " + SSTF.serviceRequests());
-        SSTF.printGraph("SSTF.jpg");
-
     }
 }
