@@ -7,10 +7,15 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
+
 import java.awt.*;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -21,49 +26,33 @@ import java.util.logging.Logger;
  *         13/06/2017.
  */
 public class CLOOK implements DiskScheduler {
-    private final int[] requestString;
-    private final int numCilindros;
-    private final int initCilindro;
+    private int[] requests;
+    private int numCilindros;
+    private int initCilindro;
     private int turnPoint;
 
-    private CLOOK(int[] requestString, int numCilindros, int initCilindro) {
-        this.requestString = requestString;
+    private CLOOK(int[] requests, int numCilindros, int initCilindro) {
+        this.requests = requests;
         this.numCilindros = numCilindros;
         this.initCilindro = initCilindro;
-    }
-
-    public static void main(String[] args) {
-        int[] requestString = {98, 183, 37, 122, 14, 124, 65, 67};
-        int numCilindros = 200;
-        int initCilindro = 53;
-
-        DiskScheduler CLOOK = new CLOOK(requestString, numCilindros, initCilindro);
-        System.out.println("Número de cilindros percorridos " + CLOOK.getClass().getName() + " : " + CLOOK.serviceRequests());
-        CLOOK.printGraph("CLOOK.jpg");
-    }
-
-    public static void test(int[] requestString, int numCilindros, int initCilindro) {
-        DiskScheduler CLOOK = new CLOOK(requestString, numCilindros, initCilindro);
-        System.out.println("Número de cilindros percorridos " + CLOOK.getClass().getName() + " : " + CLOOK.serviceRequests());
-        CLOOK.printGraph("CLOOK.jpg");
     }
 
     @Override
     public int serviceRequests() {
         // Clonando o vetor para caso algum metodo altere o original.
-        int[] requestString = this.requestString.clone();
+        int[] requests = this.requests.clone();
 
         int result = 0;
 
         // Ordenamos o vetor para poder iteragir mais facil sobre ele
-        Arrays.sort(requestString);
+        Arrays.sort(requests);
 
-        for (int i = 0; i < requestString.length - 1; i++) {
-            if ((requestString[i] < initCilindro && requestString[i + 1] < initCilindro) ||
-                    (requestString[i] > initCilindro && requestString[i + 1] > initCilindro))
-                result += requestString[i + 1] - requestString[i];
+        for (int i = 0; i < requests.length - 1; i++) {
+            if ((requests[i] < initCilindro && requests[i + 1] < initCilindro) ||
+                    (requests[i] > initCilindro && requests[i + 1] > initCilindro))
+                result += requests[i + 1] - requests[i];
             else {
-                result += initCilindro - requestString[i];
+                result += initCilindro - requests[i];
                 turnPoint = initCilindro <= numCilindros / 2 ? i : i + 1;
             }
         }
@@ -74,10 +63,10 @@ public class CLOOK implements DiskScheduler {
     @Override
     public void printGraph(String filename) {
         // Clonando o vetor para caso algum metodo altere o original.
-        int[] requestString = this.requestString.clone();
+        int[] requests = this.requests.clone();
 
         // Ordenamos o vetor para poder iteragir mais facil sobre ele
-        Arrays.sort(requestString);
+        Arrays.sort(requests);
 
         int y_axis = 0;
 
@@ -90,27 +79,27 @@ public class CLOOK implements DiskScheduler {
 
         if (initCilindro <= numCilindros / 2) {
             for (int i = turnPoint; i >= 0; i--) {
-                series1.add(++y_axis, requestString[i]);
+                series1.add(++y_axis, requests[i]);
             }
 
-            connectionSeries.add(y_axis, requestString[0]);
-            connectionSeries.add(y_axis, requestString[requestString.length - 1]);
-            series2.add(y_axis, requestString[requestString.length - 1]);
+            connectionSeries.add(y_axis, requests[0]);
+            connectionSeries.add(y_axis, requests[requests.length - 1]);
+            series2.add(y_axis, requests[requests.length - 1]);
 
-            for (int i = requestString.length - 2; i > turnPoint; i--) {
-                series2.add(++y_axis, requestString[i]);
+            for (int i = requests.length - 2; i > turnPoint; i--) {
+                series2.add(++y_axis, requests[i]);
             }
         } else {
-            for (int i = requestString.length - 1; i >= turnPoint; i--) {
-                series1.add(++y_axis, requestString[i]);
+            for (int i = requests.length - 1; i >= turnPoint; i--) {
+                series1.add(++y_axis, requests[i]);
             }
 
-            connectionSeries.add(y_axis, requestString[requestString.length - 1]);
-            connectionSeries.add(y_axis, requestString[0]);
-            series2.add(y_axis, requestString[0]);
+            connectionSeries.add(y_axis, requests[requests.length - 1]);
+            connectionSeries.add(y_axis, requests[0]);
+            series2.add(y_axis, requests[0]);
 
             for (int i = 1; i < turnPoint; i++) {
-                series2.add(++y_axis, requestString[i]);
+                series2.add(++y_axis, requests[i]);
             }
 
         }
@@ -145,13 +134,13 @@ public class CLOOK implements DiskScheduler {
 
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesStroke(0, new BasicStroke(2.0f));
-        renderer.setSeriesPaint(0, Color.red);
+        renderer.setSeriesPaint(0, Color.CYAN);
 
         renderer.setSeriesStroke(1, new BasicStroke(2.0f));
-        renderer.setSeriesPaint(1, Color.red);
+        renderer.setSeriesPaint(1, Color.CYAN);
 
         renderer.setSeriesStroke(2, new BasicStroke(1.0f));
-        renderer.setSeriesPaint(2, Color.blue);
+        renderer.setSeriesPaint(2, Color.BLACK);
 
         plot.setRenderer(renderer);
 
@@ -160,5 +149,36 @@ public class CLOOK implements DiskScheduler {
         } catch (IOException ex) {
             Logger.getLogger(SSTF.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static void main(String[] args) {
+        int[] request = null;
+        int numCilindros = 0;
+        int initCilindro = 0;
+
+        try(BufferedReader br = new BufferedReader(new FileReader(args[0]))) {
+            String line = br.readLine();
+            numCilindros = Integer.parseInt(line);
+
+            line = br.readLine();
+            initCilindro = Integer.parseInt(line);
+
+            List<Integer> requestList = new ArrayList<>();
+            line = br.readLine();
+            for(String s : line.split(" ")){
+                requestList.add(Integer.parseInt(s));
+            }
+            //iniciando o vetor com o tamanho necessario
+            request = new int[requestList.size()];
+
+            //Transforma a lista para vetor de inteiros
+            request = requestList.stream().mapToInt(i->i).toArray();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        DiskScheduler CLOOK = new CLOOK(request, numCilindros, initCilindro);
+        System.out.println("Número de cilindros percorridos " + CLOOK.getClass().getName() + " : " + CLOOK.serviceRequests());
+        CLOOK.printGraph("CLOOK.jpg");
     }
 }
